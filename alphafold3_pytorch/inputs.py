@@ -134,7 +134,7 @@ RDLogger.DisableLog("rdApp.*")
 
 # constants
 
-PDB_INPUT_TO_MOLECULE_INPUT_MAX_SECONDS_PER_INPUT = 60
+PDB_INPUT_TO_MOLECULE_INPUT_MAX_SECONDS_PER_INPUT = 99999
 
 IS_MOLECULE_TYPES = 5
 IS_PROTEIN_INDEX = 0
@@ -3054,6 +3054,10 @@ def pdb_input_to_molecule_input(
             filepath=filepath,
             file_id=file_id,
         )
+        # # 打印mmcif_object的structure中有几条链：
+        # for chain in mmcif_object.structure:
+        #     print(f"Chain ID in mmcif_object: {chain.id}")
+
         mmcif_resolution = extract_mmcif_metadata_field(mmcif_object, "resolution")
         mmcif_release_date = extract_mmcif_metadata_field(mmcif_object, "release_date")
         biomol = (

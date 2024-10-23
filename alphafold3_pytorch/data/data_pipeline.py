@@ -549,7 +549,7 @@ def get_assembly(biomol: Biomolecule, assembly_id: Optional[str] = None) -> Biom
     :param biomol: The Biomolecule from which to extract the requested assembly.
     :param assembly_id: The index of the assembly to get.
     :return: The requested assembly.
-    """
+    """ 
     # Get mmCIF metadata categories
     assembly_category = mmcif_parsing.mmcif_loop_to_dict(
         "_pdbx_struct_assembly.", "_pdbx_struct_assembly.id", biomol.mmcif_metadata
@@ -580,6 +580,13 @@ def get_assembly(biomol: Biomolecule, assembly_id: Optional[str] = None) -> Biom
 
     # Calculate all possible transformations
     transformations = mmcif_parsing.get_transformations(struct_oper_category)
+
+    # 打印ssembly_gen_category的内容 
+    print("ssembly_gen_category: ", assembly_gen_category)
+    # 打印biomol所有的chain_id 
+    chain_id_mapping = {chain_id: n for n, chain_id in enumerate(np.unique(biomol.chain_id))}
+    print("biomol.chain_id_mapping: ", str(chain_id_mapping))
+    print("biomol chain_id: ", str(biomol.chain_id))
 
     # Get transformations and apply them to the affected asym IDs
     assembly = None

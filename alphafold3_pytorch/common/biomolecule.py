@@ -698,6 +698,7 @@ def _from_mmcif_object(
     author_cri_to_new_cri = {}
 
     for chain in model:
+        # print("Parsing chain", chain.id)
         if exists(chain_ids) and chain.id not in chain_ids:
             continue
         for res_index, res in enumerate(chain):

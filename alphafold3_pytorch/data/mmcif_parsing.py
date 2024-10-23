@@ -354,7 +354,12 @@ def parse(
         parser = PDB.MMCIFParser(QUIET=True, auth_chains=auth_chains, auth_residues=auth_residues)
         with io.StringIO(mmcif_string) as handle:
             full_structure = parser.get_structure("", handle)
+        # print(f"full_structure: {full_structure}")
+        # for chain in full_structure.get_chains():
+        #     print(f"chain: {chain}: id : {chain.id}")
         first_model_structure = _get_first_model(full_structure)
+        # print(f"first_model_structure: {first_model_structure}")
+
         # Extract the _mmcif_dict from the parser, which contains useful fields not
         # reflected in the Biopython structure.
         parsed_info = parser._mmcif_dict  # pylint:disable=protected-access

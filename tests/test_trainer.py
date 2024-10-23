@@ -241,7 +241,7 @@ def test_trainer_with_pdb_input(populate_mock_pdb_and_remove_test_folders):
         dataset = dataset,
         valid_dataset = valid_dataset,
         test_dataset = test_dataset,
-        accelerator = 'cpu',
+        accelerator = 'gpu',
         num_train_steps = 2,
         batch_size = 1,
         valid_every = 1,
@@ -439,3 +439,113 @@ def test_conductor_config_with_pdb_datasets(populate_mock_pdb_and_remove_test_fo
 
     assert str(trainer.checkpoint_folder) == 'test-folder/main-and-finetuning/main'
     assert str(trainer.checkpoint_prefix) == 'af3.main.ckpt.'
+
+
+
+def test_trainer_with_syc():
+    
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print("using device: ", device)
+
+    alphafold3 = Alphafold3(
+        dim_atom=4,
+        dim_atompair=4,
+        dim_input_embedder_token=4,
+        dim_single=4,
+        dim_pairwise=4,
+        dim_token=4,
+        dim_atom_inputs=3,
+        dim_atompair_inputs=5,
+        atoms_per_window=27,
+        dim_template_feats=108,
+        num_dist_bins=64,
+        confidence_head_kwargs=dict(
+            pairformer_depth=1,
+        ),
+        template_embedder_kwargs=dict(pairformer_stack_depth=1),
+        msa_module_kwargs=dict(depth=1),
+        pairformer_stack=dict(
+            depth=1,
+            pair_bias_attn_dim_head = 4,
+            pair_bias_attn_heads = 2,
+        ),
+        diffusion_module_kwargs=dict(
+            atom_encoder_depth=1,
+            token_transformer_depth=1,
+            atom_decoder_depth=1,
+            atom_decoder_kwargs = dict(
+                attn_pair_bias_kwargs = dict(
+                    dim_head = 4
+                )
+            ),
+            atom_encoder_kwargs = dict(
+                attn_pair_bias_kwargs = dict(
+                    dim_head = 4
+                )
+            )
+        ),
+    )
+
+    # 将模型移动到设备
+    alphafold3 = alphafold3.to(device)
+    
+    # 使用 `parameters()` 获取模型的所有参数，并计算参数总数
+    alphafold3_real = Alphafold3(dim_atom_inputs = 3, dim_template_feats=108)
+    total_params_real = sum(p.numel() for p in alphafold3_real.parameters())
+    print(f"官方模型的参数总量为: {total_params_real}")
+
+    total_params = sum(p.numel() for p in alphafold3.parameters())
+    print(f"当前测试模型的参数总量为: {total_params}")
+
+    # 检查 Linear 层的权重和偏置项是否在正确的设备上。
+    for name, p in alphafold3.named_parameters():
+        print(f"{name}: {p.device}")
+    
+
+    # 初始测试数据
+    # dataset = PDBDataset('./test-folder/data/train')
+    # 尝试加入MSA和Template特征
+    dataset = PDBDataset('./test-folder/data/train')
+                        #  msa_dir='./test-folder/train_alignment_test')
+
+    valid_dataset = PDBDataset('./test-folder/data/valid')
+    test_dataset = PDBDataset('./test-folder/data/test')
+
+
+    # # 读取dataset，给出每一个样本token的长度
+    # for i, sample in enumerate(dataset):
+    #     token_length = len(sample['token_ids'])
+    #     print("token_length: "+ str(token_length))
+
+    # 直接进行训练，跳过模型评估
+    trainer = Trainer(
+        alphafold3,
+        dataset=dataset,
+        valid_dataset=valid_dataset,
+        test_dataset=test_dataset,
+        accelerator='gpu',
+        num_train_steps=2,
+        batch_size=1,
+        valid_every=1,
+        grad_accum_every=1,
+        checkpoint_every=16,
+        checkpoint_folder='./test-folder/checkpoints',
+        overwrite_checkpoints=True,
+        use_ema=False,
+        ema_kwargs=dict(
+            use_foreach=True,
+            update_after_step=0,
+            update_every=1
+        )
+    )
+
+    trainer()  # 开始训练
+
+    # 如果不需要保存模型的中间状态，也可以注释掉检查点相关的逻辑
+    # trainer.save('./test-folder/nested/folder2/training.pt', overwrite=True)
+    # trainer.load('./test-folder/nested/folder2/training.pt', strict=False)
+
+    # 同样，不需要加载模型进行微调，可以注释掉以下部分
+    # trainer.load('./test-folder/nested/folder2/training.pt', only_model=True, strict=False)
+
+test_trainer_with_syc()
