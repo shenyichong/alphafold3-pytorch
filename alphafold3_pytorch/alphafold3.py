@@ -4187,6 +4187,9 @@ class InputFeatureEmbedder(Module):
 
         w = self.atoms_per_window
 
+        print(f"Model device: {next(self.parameters()).device}")
+        print(f"Input device: {atom_inputs.device}")
+
         atom_feats = self.to_atom_feats(atom_inputs)
         atompair_feats = self.to_atompair_feats(atompair_inputs)
 

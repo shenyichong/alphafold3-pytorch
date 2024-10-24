@@ -79,9 +79,33 @@ def to_device_and_back(
     if need_move_device:
         module.to(orig_device)
 
-def cycle(dataloader: DataLoader):
+def cycle(dataloader: DataLoader, fabric: Fabric):
     while True:
         for batch in dataloader:
+            # if batch is None:
+            #     print("Batch is None, check your dataloader.")
+            #     continue  # Skip to the next iteration if batch is None
+
+            # if not hasattr(batch, 'model_forward_dict'):
+            #     raise AttributeError("Batch does not have 'model_forward_dict' method.")
+            
+            # model_dict = batch.model_forward_dict()
+            # # print(f"model_forward_dict() returned: {model_dict}")
+
+            # if model_dict is None:
+            #     print("model_forward_dict() returned None, check your batch structure.")
+            #     continue
+
+            # # Move tensors to the device, skip or replace None values
+            # model_dict = {k: v.to(device) if v is not None else None for k, v in model_dict.items()}
+            
+            # for key, value in batch.items():
+            #     if value is not None:
+            #         print(f"{key} is on device: {value.device}")
+            #     else:
+            #         print(f"{key} is None and was not moved to the device.")
+            batch = fabric.to_device(batch)
+
             yield batch
 
 @typecheck
@@ -202,6 +226,8 @@ class Trainer:
 
         self.fabric = fabric
         fabric.launch()
+
+        print(f'fabric device: {self.fabric.device}')
 
         # whether evaluating only on root node or not
         # to save on each machine keeping track of EMA
@@ -506,7 +532,7 @@ class Trainer:
 
         # cycle through dataloader
 
-        dl = cycle(self.dataloader)
+        dl = cycle(self.dataloader, self.fabric)
 
         # while less than required number of training steps
 
