@@ -444,8 +444,6 @@ def test_conductor_config_with_pdb_datasets(populate_mock_pdb_and_remove_test_fo
 
 def test_trainer_with_syc():
     
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print("using device: ", device)
 
     alphafold3 = Alphafold3(
         dim_atom=4,
@@ -487,6 +485,8 @@ def test_trainer_with_syc():
     )
 
     # 将模型移动到设备
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print("using device: ", device)
     alphafold3 = alphafold3.to(device)
     
     # 使用 `parameters()` 获取模型的所有参数，并计算参数总数
@@ -505,8 +505,8 @@ def test_trainer_with_syc():
     # 初始测试数据
     # dataset = PDBDataset('./test-folder/data/train')
     # 尝试加入MSA和Template特征
-    dataset = PDBDataset('./test-folder/data/train')
-                        #  msa_dir='./test-folder/train_alignment_test')
+    dataset = PDBDataset('./test-folder/data/train',
+                         msa_dir='./test-folder/train_alignment_test')
 
     valid_dataset = PDBDataset('./test-folder/data/valid')
     test_dataset = PDBDataset('./test-folder/data/test')

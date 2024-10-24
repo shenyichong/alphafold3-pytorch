@@ -79,33 +79,13 @@ def to_device_and_back(
     if need_move_device:
         module.to(orig_device)
 
+# bug fix: add fabric for device mapping
+# def cycle(dataloader: DataLoader):
 def cycle(dataloader: DataLoader, fabric: Fabric):
     while True:
         for batch in dataloader:
-            # if batch is None:
-            #     print("Batch is None, check your dataloader.")
-            #     continue  # Skip to the next iteration if batch is None
-
-            # if not hasattr(batch, 'model_forward_dict'):
-            #     raise AttributeError("Batch does not have 'model_forward_dict' method.")
-            
-            # model_dict = batch.model_forward_dict()
-            # # print(f"model_forward_dict() returned: {model_dict}")
-
-            # if model_dict is None:
-            #     print("model_forward_dict() returned None, check your batch structure.")
-            #     continue
-
-            # # Move tensors to the device, skip or replace None values
-            # model_dict = {k: v.to(device) if v is not None else None for k, v in model_dict.items()}
-            
-            # for key, value in batch.items():
-            #     if value is not None:
-            #         print(f"{key} is on device: {value.device}")
-            #     else:
-            #         print(f"{key} is None and was not moved to the device.")
+            # bug fix 
             batch = fabric.to_device(batch)
-
             yield batch
 
 @typecheck
@@ -531,7 +511,8 @@ class Trainer:
         self.generate_train_id()
 
         # cycle through dataloader
-
+        # bug fix: add device to dataloader iteration
+        # dl = cycle(self.dataloader)
         dl = cycle(self.dataloader, self.fabric)
 
         # while less than required number of training steps
@@ -616,6 +597,7 @@ class Trainer:
                     valid_loss_breakdown = None
 
                     for valid_batch in self.valid_dataloader:
+                        # bug fix: add device to validation inputs
                         valid_batch = self.fabric.to_device(valid_batch)
                         valid_loss, loss_breakdown = eval_model(
                             **valid_batch.model_forward_dict(),
@@ -662,6 +644,7 @@ class Trainer:
                 test_loss_breakdown = None
 
                 for test_batch in self.test_dataloader:
+                    # bug fix: add device to test inputs
                     test_batch = self.fabric.to_device(test_batch)
                     test_loss, loss_breakdown = eval_model(
                         **test_batch.model_forward_dict(),
