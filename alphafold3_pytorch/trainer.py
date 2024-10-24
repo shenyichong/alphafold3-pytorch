@@ -616,6 +616,7 @@ class Trainer:
                     valid_loss_breakdown = None
 
                     for valid_batch in self.valid_dataloader:
+                        valid_batch = self.fabric.to_device(valid_batch)
                         valid_loss, loss_breakdown = eval_model(
                             **valid_batch.model_forward_dict(),
                             return_loss_breakdown = True
@@ -661,6 +662,7 @@ class Trainer:
                 test_loss_breakdown = None
 
                 for test_batch in self.test_dataloader:
+                    test_batch = self.fabric.to_device(test_batch)
                     test_loss, loss_breakdown = eval_model(
                         **test_batch.model_forward_dict(),
                         return_loss_breakdown = True

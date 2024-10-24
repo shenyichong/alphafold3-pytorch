@@ -171,7 +171,7 @@ def extract_chain_sequences_and_lengths(cif_file_path: str):
 
 import os 
 
-filepath = "/mnt/syc/alphafold3-pytorch/data/pdb_data/train_mmcifs/a4/7a4d-assembly1.cif"
+filepath = "/data/syc/af3_fork/alphafold3-pytorch/data/pdb_data/train_mmcifs/a4/7a4d-assembly1.cif"
 file_id = os.path.splitext(os.path.basename(filepath))[0]
 
 mmcif_object = mmcif_parsing.parse_mmcif_object(
@@ -196,15 +196,15 @@ mmcif_string = to_mmcif(
     # unique_res_atom_names=assembly.unique_res_atom_names,
     unique_res_atom_names=cropped_assembly.unique_res_atom_names,
 )
-with open("/mnt/syc/alphafold3-pytorch/test-folder/data/train/7a4d-assembly1_reconstructed.cif", "w") as f:
+with open("/data/syc/af3_fork/alphafold3-pytorch/test-folder/data/train/7a4d-assembly1_reconstructed.cif", "w") as f:
     f.write(mmcif_string)
 
 print(f"Successfully reconstructed {filepath} after mmCIF featurization.")
 
 print("---------------------before crop-----------------------: ")
-cif_file_path =  "/mnt/syc/alphafold3-pytorch/data/pdb_data/train_mmcifs/a4/7a4d-assembly1.cif"
+cif_file_path =  "/data/syc/af3_fork/alphafold3-pytorch/data/pdb_data/train_mmcifs/a4/7a4d-assembly1.cif"
 extract_chain_sequences_and_lengths(cif_file_path)
 
 print("---------------------after crop-----------------------: ")
-cif_file_path = '/mnt/syc/alphafold3-pytorch/test-folder/data/train/7a4d-assembly1_reconstructed.cif'
+cif_file_path = '/data/syc/af3_fork/alphafold3-pytorch/test-folder/data/train/7a4d-assembly1_reconstructed.cif'
 extract_chain_sequences_and_lengths(cif_file_path)
